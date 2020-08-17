@@ -15,26 +15,32 @@ export class ProductsComponent implements OnInit {
   response: any;
   lists: any;
   queryString: any;
+  searchQuery:any;
+  constructor(private service: SearchServiceService, private store: Store<{ items: any; cart: [] }>, private dialog: MatDialog) { }
 
-  constructor(private service: SearchServiceService,private store:Store<{ items: any ; cart: [] }>, private dialog: MatDialog) { }
-  
   ngOnInit() {
+    this.retrieveValues();
   }
-  search(query) {
-    this.service.getSearchResult(query).subscribe(result => {
-      console.log(result);
-      this.queryString = query;
-      this.response = result["results"];
+  retrieveValues(){
+    this.store.select('cart').subscribe(data => {
+      if (data['item'].length != 0) {
+        this.searchQuery = data['item'][0].queryString;
+        this.response = data['item'][0].items;
+      }
     })
   }
+  search(query) {
+    this.store.dispatch(new Cart.LoadItems({ queryString: query }));
+    this.retrieveValues();
+  }
   authorPage(image) {
-    if(image.user.portfolio_url != null){
-    window.open(image.user.portfolio_url);
-    }else{
+    if (image.user.portfolio_url != null) {
+      window.open(image.user.portfolio_url);
+    } else {
       alert("author details not available")
     }
   }
-  addSelected(i, product) {
+  addSelected(product) {
     const dialogRef = this.dialog.open(AddFavouriteComponent, {
       width: '500px',
       height: '200px',
